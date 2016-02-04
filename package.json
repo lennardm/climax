@@ -1,0 +1,26 @@
+{
+  "name": "climax",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "async": "^1.5.2",
+    "body-parser": "^1.14.2",
+    "csv": "^0.4.6",
+    "express": "^4.13.4",
+    "geojson": "^0.2.1",
+    "http": "0.0.0",
+    "kerberos": "0.0.18",
+    "moment": "^2.11.1",
+    "mongodb": "^2.1.4",
+    "mongoose": "^4.3.7",
+    "morgan": "^1.6.1",
+    "request": "^2.69.0",
+    "should": "^8.2.1"
+  }
+}
