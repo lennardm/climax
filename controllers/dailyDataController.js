@@ -10,7 +10,7 @@ exports.getAll = function(req, res) {
         res.send(JSON.stringify(dds));
 
     });
-}
+};
 
 exports.deleteAll = function(req, res) {
     DailyData.remove({}, function(err, remove) {
@@ -19,4 +19,4 @@ exports.deleteAll = function(req, res) {
         }
         res.sendStatus(204);
     });
-}
+};

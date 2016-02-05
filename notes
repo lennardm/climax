@@ -1,6 +1,0 @@
-curl -X POST --data "name=KNMISXC" http://localhost:3000/stations
-
-
-http://projects.knmi.nl/klimatologie/daggegevens/getdata_dag.cgi
-
-curl --data "stns=210&vars=TEMP:SUNR&byear=2016&bmonth=1&bday=20&eyear=2016&emonth=1&eday=29" http://projects.knmi.nl/klimatologie/daggegevens/getdata_dag.cgi

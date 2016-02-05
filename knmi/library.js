@@ -1,15 +1,16 @@
+var models = require('../models/');
 var http = require('http');
 var querystring = require('querystring');
 var mongoose = require('mongoose');
-var Station = mongoose.model('Station');
-var DailyData = mongoose.model('DailyData');
 var parse = require('csv-parse');
 var async = require('async');
+var Station = mongoose.model('Station');
+var DailyData = mongoose.model('DailyData');
 
-exports.retrieve = function(station, callback) {
+exports.retrieve = function(stationLocalId, stationExternalId, callback) {
     async.waterfall([
         function(callback) {
-            setPostData(station.externalId, function(err, postData) {
+            setPostData(stationExternalId, function(err, postData) {
                 callback(err, postData);
             });
         },
@@ -29,7 +30,7 @@ exports.retrieve = function(station, callback) {
             });
         },
         function(parsedResponse, callback) {
-            convertParsedResponse(parsedResponse, station._id, function(err, convertedParsedResponse) {
+            convertParsedResponse(parsedResponse, stationLocalId, function(err, convertedParsedResponse) {
                 callback(err, convertedParsedResponse);
             });
         }
@@ -121,3 +122,4 @@ var convertItem = function(item, stationId, callback) {
     dd.globalRadiation = item.Q;
     callback(null, dd);
 };
+

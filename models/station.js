@@ -13,6 +13,6 @@ stationSchema.set('toJSON', { virtuals:true });
 stationSchema.options.toJSON.transform = function (doc, ret, options) {
     delete ret._id;
     delete ret.__v;
-}
+};
 
 mongoose.model('Station', stationSchema);
