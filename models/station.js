@@ -6,7 +6,7 @@ var stationSchema = new Schema({
     name: { type: String, required: true },
     latitude: { type: Number, required: true },
     longitude: { type: Number, required: true },
-    altitude: { type: Number }
+    altitude: { type: Number, required: true }
 });
 
 stationSchema.set('toJSON', { virtuals:true });

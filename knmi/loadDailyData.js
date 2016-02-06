@@ -2,14 +2,16 @@ var config = require('../config');
 var models = require('../models/');
 var async = require('async');
 var mongoose = require('mongoose');
-mongoose.connect(config.dbConnectionString);
+mongoose.connect(config.db);
 var knmiConnector = require('./library');
 var Station = mongoose.model('Station');
+var DailyData = mongoose.model('DailyData');
+var argv = require('yargs').argv;
 
-var dailyData = function() {
+var dailyData = function(purge) {
     Station.find({}, function(err, stations) {
         async.each(stations, function(item, callback) {
-            knmiConnector.retrieve(item._id, item.externalId, function(results) {
+            knmiConnector.retrieve(item, purge, function(results) {
                 async.each(results, function(item, callback) {
                     item.save(function(err) {
                         callback()
@@ -28,4 +30,4 @@ var dailyData = function() {
     });
 };
 
-dailyData();
+dailyData(argv.purge);

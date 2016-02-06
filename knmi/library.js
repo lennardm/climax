@@ -1,3 +1,4 @@
+var config = require('../config');
 var models = require('../models/');
 var http = require('http');
 var querystring = require('querystring');
@@ -7,10 +8,24 @@ var async = require('async');
 var Station = mongoose.model('Station');
 var DailyData = mongoose.model('DailyData');
 
-exports.retrieve = function(stationLocalId, stationExternalId, callback) {
+exports.retrieve = function(station, purge, callback) {
     async.waterfall([
         function(callback) {
-            setPostData(stationExternalId, function(err, postData) {
+            if (purge) {
+                DailyData.remove({}, function(err, removed) {
+                    callback();
+                });
+            } else {
+                callback();
+            }
+        },
+        function(callback) {
+            setKnmiParameters(station, purge, function(err, knmiParameters) {
+                callback(err, knmiParameters);
+            });
+        },
+        function(knmiParameters, callback) {
+            setPostData(knmiParameters, function(err, postData) {
                 callback(err, postData);
             });
         },
@@ -30,7 +45,7 @@ exports.retrieve = function(stationLocalId, stationExternalId, callback) {
             });
         },
         function(parsedResponse, callback) {
-            convertParsedResponse(parsedResponse, stationLocalId, function(err, convertedParsedResponse) {
+            convertParsedResponse(parsedResponse, station, function(err, convertedParsedResponse) {
                 callback(err, convertedParsedResponse);
             });
         }
@@ -43,16 +58,47 @@ exports.retrieve = function(stationLocalId, stationExternalId, callback) {
     });
 };
 
-var setPostData = function(stationExternalId, callback) {
+var setKnmiParameters = function(station, purge, callback) {
+    var endDate = new Date();
+    var knmiParameters = {
+        'station': station.externalId,
+        'variables': config.dailyData.vars,
+        'beginDate': {
+            'year': config.dailyData.beginYear,
+            'month': config.dailyData.beginMonth,
+            'day': config.dailyData.beginDay,
+        },
+        'endDate': {
+            'year': endDate.getFullYear(),
+            'month': endDate.getMonth() + 1,
+            'day': endDate.getDay()
+        }
+    };
+
+    if (purge) {
+        callback(null, knmiParameters);
+    } else {
+        DailyData.latestOfStation(station, function(err, latest) {
+            if (latest) {
+                knmiParameters.beginDate.year = latest.date.getFullYear();
+                knmiParameters.beginDate.month = latest.date.getMonth() + 1;
+                knmiParameters.beginDate.day = latest.date.getDay();
+            }
+            callback(null, knmiParameters);
+        });
+    };
+};
+
+var setPostData = function(knmiParameters, callback) {
     var postData = querystring.stringify({
-        'stns': stationExternalId,
-        'vars': 'TEMP:SUNR',
-        'byear': '2016',
-        'bmonth': '1',
-        'bday': '20',
-        'eyear': '2016',
-        'emonth': '1',
-        'eday': '29'
+        'stns': knmiParameters.station,
+        'vars': knmiParameters.variables,
+        'byear': knmiParameters.beginDate.year,
+        'bmonth': knmiParameters.beginDate.month,
+        'bday': knmiParameters.beginDate.day,
+        'eyear': knmiParameters.endDate.year,
+        'emonth': knmiParameters.endDate.month,
+        'eday': knmiParameters.endDate.day
     });
     callback(null, postData);
 };
@@ -85,7 +131,6 @@ var performHttpRequest = function(options, postData, callback) {
             callback(null, response.join());
         });
     });
-
     postReq.write(postData);
     postReq.end();
 };
@@ -102,24 +147,23 @@ var convertParsedResponse = function(parsedResponse, stationId, callback) {
         convertItem(item, stationId, function(err, convertedItem) {
             convertedParsedResponse.push(convertedItem);
             callback();
-        })
+        });
     }, function(err){
         callback(null, convertedParsedResponse);
     });
 };
 
-var convertItem = function(item, stationId, callback) {
+var convertItem = function(item, station, callback) {
     var dd = new DailyData;
-    dd.station = stationId;
+    dd.station = station._id;
     dd.date = new Date(item.YYYYMMDD.substr(0,4) + '-' + item.YYYYMMDD.substr(4,2) + '-' + item.YYYYMMDD.substr(6,2));
-    dd.averageTemperature = item.TG;
-    dd.minimumTemperature = item.TN;
+    dd.averageTemperature = item.TG / 10;
+    dd.minimumTemperature = item.TN / 10;
     dd.minimumTemperatureHour = item.TNH;
-    dd.maximumTemperature = item.TX;
+    dd.maximumTemperature = item.TX / 10;
     dd.maximumTemperatureHour = item.TXH;
     dd.sunshineDuration = item.SQ;
     dd.percentageOfMaximumPotentialSunshineDuration = item.SP;
     dd.globalRadiation = item.Q;
     callback(null, dd);
 };
-
