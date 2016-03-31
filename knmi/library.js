@@ -117,8 +117,6 @@ var setOptions = function(postData, callback) {
     callback(null, options);
 };
 
-var columns = ['STN','YYYYMMDD','TG','TN','TNH','TX','TXH','T10N','T10NH','SQ','SP','Q'];
-
 var performHttpRequest = function(options, postData, callback) {
     var response = [];
     var postReq = http.request(options, function(resp) {
@@ -135,8 +133,10 @@ var performHttpRequest = function(options, postData, callback) {
     postReq.end();
 };
 
+var columns = ['STN','YYYYMMDD','TG','TN','TNH','TX','TXH','T10N','T10NH','SQ','SP','Q'];
+
 var parseResponse = function(response, columns, callback) {
-    parse(response, {comment: '#', trim: true, columns: columns}, function(err, parsedResponse){
+    parse(response, {comment: '#', trim: true, columns: columns}, function(err, parsedResponse) {
         callback(null, parsedResponse);
     });
 };
@@ -148,7 +148,7 @@ var convertParsedResponse = function(parsedResponse, stationId, callback) {
             convertedParsedResponse.push(convertedItem);
             callback();
         });
-    }, function(err){
+    }, function(err) {
         callback(null, convertedParsedResponse);
     });
 };

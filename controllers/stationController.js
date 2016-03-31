@@ -1,19 +1,22 @@
 var models = require('../models/');
 var mongoose = require('mongoose');
-var async = require('async');
-var knmiConnector = require('../knmi/library');
-var fs = require('fs');
-var parse = require('csv-parse');
+var helpers = require('../helpers');
 var Station = mongoose.model('Station');
 var DailyData = mongoose.model('DailyData');
 
 exports.getAll = function(req, res) {
-    Station.find({}, function(err, stations) {
-        if(err) {
-            return res.sendStatus(500);
-        }
-        res.send(JSON.stringify(stations));
-    });
+    if (req.query.longitude && req.query.latitude) {
+        helpers.closest(req.query.latitude, req.query.longitude, function(err, closest) {
+            res.send(JSON.stringify(closest));
+        });
+    } else {
+        Station.find({}, function(err, stations) {
+            if(err) {
+                return res.sendStatus(500);
+            }
+            res.send(JSON.stringify(stations));
+        });
+    }
 };
 
 exports.getById = function(req, res) {
@@ -76,3 +79,4 @@ var setProperties = function(station, req, callback) {
     station.latitude = req.body.latitude;
     station.longitude = req.body.longitude;
 };
+

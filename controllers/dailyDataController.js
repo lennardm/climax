@@ -3,7 +3,12 @@ var mongoose = require('mongoose');
 var DailyData = mongoose.model('DailyData');
 
 exports.getAll = function(req, res) {
-    DailyData.find({}, function(err, dds) {
+    var query = {};
+    if (req.query.station) {
+        query.station = req.query.station;
+    }
+
+    DailyData.find(query, function(err, dds) {
         if(err) {
             return console.log(err);
         }
